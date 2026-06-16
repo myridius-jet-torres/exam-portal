@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Technical Assessment Portal</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0d1117; color: #e6edf3; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .container { max-width: 480px; width: 100%; padding: 2rem; }
+        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .subtitle { color: #8b949e; margin-bottom: 2rem; font-size: 0.9rem; }
+        .form-group { margin-bottom: 1.25rem; }
+        label { display: block; font-size: 0.85rem; color: #8b949e; margin-bottom: 0.4rem; }
+        input { width: 100%; padding: 0.6rem 0.75rem; border: 1px solid #30363d; border-radius: 6px; background: #161b22; color: #e6edf3; font-size: 0.95rem; }
+        input:focus { outline: none; border-color: #58a6ff; }
+        button { width: 100%; padding: 0.7rem; border: none; border-radius: 6px; background: #238636; color: #fff; font-size: 0.95rem; font-weight: 600; cursor: pointer; margin-top: 0.5rem; }
+        button:hover { background: #2ea043; }
+        button:disabled { background: #21262d; color: #484f58; cursor: not-allowed; }
+        .status { margin-top: 1.5rem; padding: 1rem; border-radius: 6px; display: none; }
+        .status.success { display: block; background: #0d2818; border: 1px solid #238636; }
+        .status.error { display: block; background: #2d1215; border: 1px solid #f85149; }
+        .status a { color: #58a6ff; }
+        .timer-note { color: #8b949e; font-size: 0.8rem; margin-top: 1rem; }
+        .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid #484f58; border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 6px; vertical-align: middle; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✈️ Technical Assessment</h1>
+        <p class="subtitle">Enter your details to receive your coding assessment. You'll have <strong>24 hours</strong> from when you accept the invite.</p>
+
+        <form id="examForm">
+            <div class="form-group">
+                <label for="fullName">Full Name</label>
+                <input type="text" id="fullName" placeholder="e.g. Juan Dela Cruz" required>
+            </div>
+            <div class="form-group">
+                <label for="githubUsername">GitHub Username</label>
+                <input type="text" id="githubUsername" placeholder="e.g. juandelacruz" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" placeholder="e.g. juan@email.com" required>
+            </div>
+            <button type="submit" id="submitBtn">Start Assessment</button>
+        </form>
+
+        <div id="status" class="status"></div>
+        <p class="timer-note">⏱️ Your 24-hour timer starts when you accept the GitHub collaboration invite.</p>
+    </div>
+
+    <script>
+        const form = document.getElementById('examForm');
+        const statusDiv = document.getElementById('status');
+        const submitBtn = document.getElementById('submitBtn');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner"></span>Creating your repo...';
+            statusDiv.className = 'status';
+            statusDiv.style.display = 'none';
+
+            const payload = {
+                fullName: document.getElementById('fullName').value.trim(),
+                githubUsername: document.getElementById('githubUsername').value.trim(),
+                email: document.getElementById('email').value.trim()
+            };
+
+            try {
+                const payload = {
+                    fullName: document.getElementById('fullName').value.trim(),
+                    githubUsername: document.getElementById('githubUsername').value.trim(),
+                    email: document.getElementById('email').value.trim()
+                };
+
+                const issueBody = JSON.stringify(payload);
+                const issueTitle = `[EXAM] ${payload.fullName}`;
+                const repoName = 'flight-upgrade-engine-' + payload.fullName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+                
+                // Redirect to GitHub issue creation with pre-filled data
+                const url = `https://github.com/myridius-jet-torres/exam-portal/issues/new?title=${encodeURIComponent(issueTitle)}&body=${encodeURIComponent(issueBody)}&labels=exam-request`;
+                
+                statusDiv.className = 'status success';
+                statusDiv.innerHTML = `
+                    <strong>Almost there!</strong><br><br>
+                    Click the button below to submit your request via GitHub. Just click "Submit new issue" on the next page — everything is pre-filled.<br><br>
+                    <a href="${url}" target="_blank" style="display:inline-block;padding:0.5rem 1rem;background:#238636;color:#fff;border-radius:6px;text-decoration:none;font-weight:600;">Submit on GitHub →</a><br><br>
+                    Your repo (<strong>${repoName}</strong>) will be created automatically within 1-2 minutes after you submit.
+                `;
+            } catch (err) {
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = `<strong>❌ Error:</strong> ${err.message}. Please contact the recruiter.`;
+            }
+
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Start Assessment';
+        });
+    </script>
+</body>
+</html>

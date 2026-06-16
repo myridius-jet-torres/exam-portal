@@ -1,0 +1,90 @@
+name: Create Exam Repo
+
+on:
+  issues:
+    types: [opened, labeled]
+
+jobs:
+  create-repo:
+    runs-on: ubuntu-latest
+    if: contains(github.event.issue.labels.*.name, 'exam-request')
+    steps:
+      - name: Create candidate repo from template
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.EXAM_PAT }}
+          script: |
+            const issue = context.payload.issue;
+            const { fullName, githubUsername, email } = JSON.parse(issue.body);
+            const repoName = 'flight-upgrade-engine-' + fullName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+            const owner = 'myridius-jet-torres';
+
+            console.log(`Creating repo: ${repoName} for ${githubUsername} (${email})`);
+
+            // 1. Create repo from template
+            try {
+              await github.rest.repos.createUsingTemplate({
+                template_owner: owner,
+                template_repo: 'flight-upgrade-engine',
+                owner: owner,
+                name: repoName,
+                private: true,
+                include_all_branches: false
+              });
+              console.log(`Repo created: ${repoName}`);
+            } catch (err) {
+              if (err.status === 422) {
+                console.log(`Repo already exists: ${repoName}`);
+              } else {
+                throw err;
+              }
+            }
+
+            // 2. Wait for repo to be ready
+            await new Promise(r => setTimeout(r, 3000));
+
+            // 3. Invite candidate as collaborator
+            try {
+              await github.rest.repos.addCollaborator({
+                owner: owner,
+                repo: repoName,
+                username: githubUsername,
+                permission: 'push'
+              });
+              console.log(`Invited ${githubUsername} to ${repoName}`);
+            } catch (err) {
+              console.log(`Failed to invite: ${err.message}`);
+            }
+
+            // 4. Store candidate metadata in repo as a tracking file
+            const metadata = JSON.stringify({
+              fullName,
+              githubUsername,
+              email,
+              repoName,
+              createdAt: new Date().toISOString(),
+              deadlineHours: 24
+            }, null, 2);
+
+            await github.rest.repos.createOrUpdateFileContents({
+              owner: owner,
+              repo: repoName,
+              path: '.exam-metadata.json',
+              message: 'exam: track candidate metadata and timer',
+              content: Buffer.from(metadata).toString('base64')
+            });
+            console.log('Metadata file created');
+
+            // Close the issue
+            await github.rest.issues.createComment({
+              owner: owner,
+              repo: 'exam-portal',
+              issue_number: issue.number,
+              body: `✅ Repo created: \`${repoName}\`\n👤 Invited: @${githubUsername}\n⏱️ 24h timer starts on first commit.`
+            });
+            await github.rest.issues.update({
+              owner: owner,
+              repo: 'exam-portal',
+              issue_number: issue.number,
+              state: 'closed'
+            });
