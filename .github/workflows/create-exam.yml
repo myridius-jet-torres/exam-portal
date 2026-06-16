@@ -2,12 +2,12 @@ name: Create Exam Repo
 
 on:
   issues:
-    types: [opened, labeled]
+    types: [opened]
 
 jobs:
   create-repo:
     runs-on: ubuntu-latest
-    if: contains(github.event.issue.labels.*.name, 'exam-request')
+    if: startsWith(github.event.issue.title, '[EXAM]')
     steps:
       - name: Create candidate repo from template
         uses: actions/github-script@v7

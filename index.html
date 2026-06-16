@@ -81,7 +81,7 @@
                 const repoName = 'flight-upgrade-engine-' + payload.fullName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
                 
                 // Redirect to GitHub issue creation with pre-filled data
-                const url = `https://github.com/myridius-jet-torres/exam-portal/issues/new?title=${encodeURIComponent(issueTitle)}&body=${encodeURIComponent(issueBody)}&labels=exam-request`;
+                const url = `https://github.com/myridius-jet-torres/exam-portal/issues/new?title=${encodeURIComponent(issueTitle)}&body=${encodeURIComponent(issueBody)}`;
                 
                 statusDiv.className = 'status success';
                 statusDiv.innerHTML = `
