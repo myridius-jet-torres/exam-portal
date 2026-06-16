@@ -61,7 +61,7 @@
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<span class="spinner"></span>Creating your repo...';
             statusDiv.className = 'status';
-            statusDiv.style.display = 'none';
+            statusDiv.style.display = '';
 
             const payload = {
                 fullName: document.getElementById('fullName').value.trim(),
