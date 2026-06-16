@@ -53,7 +53,20 @@ jobs:
               });
               console.log(`Invited ${githubUsername} to ${repoName}`);
             } catch (err) {
-              console.log(`Failed to invite: ${err.message}`);
+              console.log(`Failed to invite candidate: ${err.message}`);
+            }
+
+            // 3b. Invite jericah-codes as reviewer
+            try {
+              await github.rest.repos.addCollaborator({
+                owner: owner,
+                repo: repoName,
+                username: 'jericah-codes',
+                permission: 'push'
+              });
+              console.log('Invited jericah-codes to ' + repoName);
+            } catch (err) {
+              console.log(`Failed to invite jericah-codes: ${err.message}`);
             }
 
             // 4. Store candidate metadata in repo as a tracking file
