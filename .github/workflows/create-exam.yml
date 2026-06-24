@@ -19,6 +19,21 @@ jobs:
             const repoName = 'flight-upgrade-engine-' + fullName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
             const owner = 'myridius-jet-torres';
 
+            // Check if repo already exists — prevent duplicate processing
+            try {
+              await github.rest.repos.get({ owner, repo: repoName });
+              console.log(`Repo already exists: ${repoName} — skipping (duplicate submission)`);
+              await github.rest.issues.createComment({
+                owner, repo: 'exam-portal', issue_number: issue.number,
+                body: `⚠️ Repo \`${repoName}\` already exists. No action taken — check your GitHub notifications for the original invite.`
+              });
+              await github.rest.issues.update({ owner, repo: 'exam-portal', issue_number: issue.number, state: 'closed' });
+              return;
+            } catch (e) {
+              if (e.status !== 404) throw e;
+              // 404 = repo doesn't exist, proceed with creation
+            }
+
             console.log(`Creating repo: ${repoName} for ${githubUsername} (${email})`);
 
             // 1. Create repo from template
