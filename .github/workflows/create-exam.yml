@@ -79,12 +79,21 @@ jobs:
               deadlineHours: 24
             }, null, 2);
 
+            let existingSha;
+            try {
+              const { data: existing } = await github.rest.repos.getContent({
+                owner, repo: repoName, path: '.exam-metadata.json'
+              });
+              existingSha = existing.sha;
+            } catch (e) { /* file doesn't exist yet */ }
+
             await github.rest.repos.createOrUpdateFileContents({
               owner: owner,
               repo: repoName,
               path: '.exam-metadata.json',
               message: 'exam: track candidate metadata and timer',
-              content: Buffer.from(metadata).toString('base64')
+              content: Buffer.from(metadata).toString('base64'),
+              ...(existingSha && { sha: existingSha })
             });
             console.log('Metadata file created');
 
